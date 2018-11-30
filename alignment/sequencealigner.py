@@ -35,6 +35,19 @@ class SimpleScoring(Scoring):
             return self.mismatchScore
 
 
+class MatrixScoring(Scoring):
+
+    def __init__(self, subMat):
+        self.subMat = subMat
+
+    def __call__(self, firstElement, secondElement):
+        try:
+            score = self.subMat[(firstElement, secondElement)]
+        except KeyError:
+            score = self.subMat[(secondElement, firstElement)]
+        return score
+
+
 # Alignment -------------------------------------------------------------------
 
 class SequenceAlignment(object):
@@ -403,3 +416,5 @@ class LocalSequenceAligner(SequenceAligner):
                     self.backtraceFrom(first, second, f, i - 1, j,
                                        alignments, alignment)
                     alignment.pop()
+
+

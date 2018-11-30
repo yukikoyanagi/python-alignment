@@ -47,6 +47,13 @@ class Vocabulary(object):
             decoded.push(self.decode(code))
         return decoded
 
+    def encodeScoreMatrix(self, submatrix):
+        encoded = {}
+        for k in submatrix:
+            encoded[(self.encode(k[0]),
+                     self.encode(k[1]))] = submatrix[k]
+        return encoded
+
     def decodeSequenceAlignment(self, alignment):
         first = self.decodeSequence(alignment.first)
         second = self.decodeSequence(alignment.second)
