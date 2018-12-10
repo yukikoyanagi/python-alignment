@@ -1,14 +1,12 @@
-#!/usr/bin/env python
-#
 # File: substmatrices.py
 #
-# Description: Class describing local pattern. Produced by running
-#  locpat.Protein.findpattern()
+# Description: List of substitution matrices
 #
 # Author: Yuki Koyanagi
 #
 
-available = ['simplematrix']
+available = {'simplematrix': 'Simple matrix with match=1 '
+             'and mismatch=-1'}
 
 simplematrix = {
     ("F2a", "F2a") :  1, ("F2a", "F2x") : -1, ("F2a", "F3a") : -1,
@@ -385,3 +383,4 @@ simplematrix = {
     ("UNB", "UNB") :  1
 }
 
+matrixdict = {'simplematrix': simplematrix}

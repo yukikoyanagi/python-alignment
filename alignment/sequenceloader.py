@@ -1,13 +1,3 @@
-#!/usr/bin/env python
-#
-# File: ClusterAlign.py
-#
-# Description: Class describing local pattern. Produced by running
-#  locpat.Protein.findpattern()
-#
-# Author: Yuki Koyanagi
-#
-
 import re
 
 class clustersequenceloader(object):
@@ -31,7 +21,7 @@ class clustersequenceloader(object):
                 fields = line.strip().split()
                 if not regex.search(fields[flag_col]):
                     continue
-                seq[int(fields[src_col])] = fields[cluster_col]
+                seq[int(fields[src_col])-1] = fields[cluster_col]
 
         return seq
 
