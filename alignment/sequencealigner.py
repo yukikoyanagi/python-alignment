@@ -185,7 +185,7 @@ class SequenceAligner(object):
 
     @abstractmethod
     def computeAlignmentMatrix(self, first, second):
-        return numpy.zeros(0, int)
+        return numpy.zeros(0)
 
     @abstractmethod
     def bestScore(self, f):
@@ -204,7 +204,7 @@ class GlobalSequenceAligner(SequenceAligner):
     def computeAlignmentMatrix(self, first, second):
         m = len(first) + 1
         n = len(second) + 1
-        f = numpy.zeros((m, n), int)
+        f = numpy.zeros((m, n))
         for i in range(1, m):
             for j in range(1, n):
                 # Match elements.
@@ -282,7 +282,7 @@ class StrictGlobalSequenceAligner(SequenceAligner):
     def computeAlignmentMatrix(self, first, second):
         m = len(first) + 1
         n = len(second) + 1
-        f = numpy.zeros((m, n), int)
+        f = numpy.zeros((m, n))
         for i in range(1, m):
             f[i, 0] = f[i - 1, 0] + self.gapScore
         for j in range(1, n):
@@ -356,7 +356,7 @@ class LocalSequenceAligner(SequenceAligner):
     def computeAlignmentMatrix(self, first, second):
         m = len(first) + 1
         n = len(second) + 1
-        f = numpy.zeros((m, n), int)
+        f = numpy.zeros((m, n))
         for i in range(1, m):
             for j in range(1, n):
                 # Match elements.

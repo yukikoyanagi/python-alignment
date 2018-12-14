@@ -10,6 +10,7 @@ import alignment.alignmenthelper
 import alignment.substmatrices
 
 SUBST_MATRIX = alignment.substmatrices.simplematrix
+DEFAULT_GAP_SCORE = -1
 
 
 def alignmany(target, cands, length,
@@ -33,11 +34,14 @@ def alignmany(target, cands, length,
 
 
 def run(tdir, cdir, seqf,
-        match=None, mismatch=None, mat=None, gap=-1):
+        match=None, mismatch=None, mat=None,
+        gap=DEFAULT_GAP_SCORE, output=None):
     targetdir = pathlib.Path(tdir)
     canddir = pathlib.Path(cdir)
     if match is None and mat is None:
         mat=SUBST_MATRIX
+    if gap is None:
+        gap=DEFAULT_GAP_SCORE
     files = {}
     
     for candfile in canddir.iterdir():
@@ -80,14 +84,26 @@ def run(tdir, cdir, seqf,
 
     jobserver.wait()
 
+    out = []
     for job in jobs:
         result = job()
-        out = ['{}\t{}'.format(k, result[k]) for k in result]
+        out += ['{}\t{}'.format(k, result[k]) for k in result]
+    if output is None:
         print('\n'.join(out))
+    else:
+        outfile = pathlib.Path(output)
+        outfile.write_text('\n'.join(out))
         
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    matrices = alignment.substmatrices.SubstitutionMatrices()
+    alist = matrices.available
+    available = ['{}: {}'.format(k, alist[k]) for k in alist]
+    available = ['Available substitution matrices:'] + available
+    parser = argparse.ArgumentParser(
+        epilog='\n  '.join(available),
+        formatter_class=argparse.RawTextHelpFormatter
+    )
     parser.add_argument('targetdir',
                         help='Directory containing target files')
     parser.add_argument('canddir',
@@ -102,19 +118,14 @@ if __name__ == '__main__':
                         help='Substitution matrix to use')
     parser.add_argument('--gap', type=float,
                         help='Score for each gap')
-    parser.add_argument('--available', action='store_true',
-                        help='Show a list of available '
-                        'substitution matrices')
+    parser.add_argument('--output',
+                        help='Output file')
     args = parser.parse_args()
-    if args.available:
-        alist = alignment.substmatrices.available
-        available = ['{}: {}'.format(k, alist[k]) for k in alist]
-        print('\n'.join(available))
+    if args.matrix:
+        matrices = alignment.substmatrices.SubstitutionMatrices()
+        mat = matrices.getmatrix(args.matrix)
     else:
-        if args.matrix:
-            mat = alignment.substmatrices.matrixdict[args.matrix]
-        else:
-            mat = None
+        mat = None
 
-        run(args.targetdir, args.canddir, args.seqf,
-            args.match, args.mismatch, mat, args.gap)
+    run(args.targetdir, args.canddir, args.seqf,
+        args.match, args.mismatch, mat, args.gap, args.output)

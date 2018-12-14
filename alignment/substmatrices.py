@@ -5,8 +5,73 @@
 # Author: Yuki Koyanagi
 #
 
-available = {'simplematrix': 'Simple matrix with match=1 '
-             'and mismatch=-1'}
+from itertools import combinations_with_replacement as cwr
+from pkg_resources import resource_filename
+import pickle
+
+
+import alignment.conv as conv
+
+class SubstitutionMatrices(object):
+    alphabet = ['F2a', 'F2x',
+                'F3a', 'F3b', 'F3c', 'F3x',
+                'F4a', 'F4x',
+                'F5a', 'F5x',
+                'F6a', 'F6x',
+                'LRa', 'LRb', 'LRc', 'LRd', 'LRe', 'LRf', 'LRx',
+                'NC-',
+                'R2a', 'R2b', 'R2c', 'R2x',
+                'R3a', 'R3b', 'R3c', 'R3d', 'R3e', 'R3x',
+                'R4a', 'R4b', 'R4x',
+                'R5a', 'R5b', 'R5c', 'R5d', 'R5e', 'R5x',
+                'R6a', 'R6b', 'R6x',
+                'UNB']
+    available = {'simplematrix': 'Simple matrix with match=1 '
+                 'and mismatch=-1',
+                 'clusterdistance': 'Mismatch scores are '
+                 'given by -(distance between clusters).'}
+
+    @property
+    def simplematrix(self):
+        a2 = cwr(self.alphabet, 2)
+        matrix = {k: (-1)**int(k[0]!=k[1]) for k in a2}
+        return matrix
+
+    @property
+    def clusterdistance(self):
+        fname = resource_filename('alignment',
+                                  'config/clustermode.pkl')
+        with open(fname, 'rb') as f:
+            modes = pickle.load(f)
+        a2 = cwr(self.alphabet, 2)
+        matrix = {}
+        for k in a2:
+            if k[0] == k[1]:
+                dist = -1 #this gives match score = 1
+            else:
+                try:
+                    first = modes[k[0]]
+                    second = modes[k[1]]
+                    dist = conv.so3dist(
+                        conv.ev2mat(first[0], first[1]),
+                        conv.ev2mat(second[0], second[1])
+                    )
+                except KeyError:
+                    #The given key is not found in the dict of modes.
+                    #Most likely because the key is of the type '??x'
+                    #or 'NC-'/'UNB'
+                    dist = 3.14
+            matrix[k] = -1 * dist
+        return matrix
+
+    def getmatrix(self, matrixname):
+        if matrixname == 'simplematrix':
+            return self.simplematrix
+        elif matrixname == 'clusterdistance':
+            return self.clusterdistance
+        else:
+            raise KeyError('{} not found.'.format(matrixname))
+
 
 simplematrix = {
     ("F2a", "F2a") :  1, ("F2a", "F2x") : -1, ("F2a", "F3a") : -1,
@@ -26,7 +91,7 @@ simplematrix = {
     ("F2a", "UNB") : -1,
     
     ("F2x", "F2x") :  1, ("F2x", "F3a") : -1, ("F2x", "F3b") : -1,
-    ("F2x", "F3c") : -1, ("F2a", "F3x") : -1, ("F2x", "F4a") : -1,
+    ("F2x", "F3c") : -1, ("F2x", "F3x") : -1, ("F2x", "F4a") : -1,
     ("F2x", "F4x") : -1, ("F2x", "F5a") : -1, ("F2x", "F5x") : -1,
     ("F2x", "F6a") : -1, ("F2x", "F6x") : -1, ("F2x", "LRa") : -1,
     ("F2x", "LRb") : -1, ("F2x", "LRc") : -1, ("F2x", "LRd") : -1,
@@ -383,4 +448,3 @@ simplematrix = {
     ("UNB", "UNB") :  1
 }
 
-matrixdict = {'simplematrix': simplematrix}

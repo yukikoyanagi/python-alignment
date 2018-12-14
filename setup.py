@@ -6,7 +6,7 @@ from distutils.core import setup
 # noinspection PyArgumentList
 setup(
     name='alignment',
-    version='1.0.10',
+    version='1.1.2',
     author='Eser Aygün',
     author_email='eser.aygun@gmail.com',
     packages=['alignment'],
@@ -15,4 +15,6 @@ setup(
     description='Native Python library for generic sequence alignment.',
     long_description=open('README.rst').read(),
     requires=['numpy', 'six'],
+    package_dir={'alignment': 'alignment'},
+    package_data={'alignment': ['config/clustermode.pkl']}
 )
