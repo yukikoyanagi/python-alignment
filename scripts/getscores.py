@@ -56,7 +56,14 @@ def run(tdir, cdir, seqf,
             target, length, __ = line.split()
             seqlen[target] = int(length)
 
-    jobserver = pp.Server()
+    # Set up ppservers
+    try:
+        ppservers = open('tmp/nodelist').read().strip().split()
+        ppservers = tuple(pp + ':2048' for pp in ppservers)
+        jobserver = pp.server(ppservers=ppservers)
+    except IOError:
+        # It wasn't called by slrm bashscript. Run locally.
+        jobserver = pp.Server()
     ncpus = jobserver.get_ncpus()
     if len(files) < ncpus:
         jobserver.set_ncpus(len(files))

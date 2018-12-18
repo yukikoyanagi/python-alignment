@@ -86,4 +86,4 @@ if __name__ == '__main__':
                         help='How many resuts from the other file '
                         'to display')
     args = parser.parse_args()
-    run(gdtfile, otherfile, howmany)
+    run(args.gdtfile, args.otherfile, args.howmany)
