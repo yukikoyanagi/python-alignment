@@ -76,7 +76,7 @@ def main(targetfile, candidatesfile, window, matrix, gap, outfile):
         jobserver = pp.Server()
     else:
         ppservers = tuple(pp + ':2048' for pp in ppservers)
-        jobserver = pp.server(ppservers=ppservers)
+        jobserver = pp.Server(ppservers=ppservers)
     ncpus = jobserver.get_ncpus()
 
     jobs = []
