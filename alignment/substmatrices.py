@@ -8,9 +8,11 @@
 from itertools import combinations_with_replacement as cwr
 from pkg_resources import resource_filename
 import pickle
+import math
 
 
 import alignment.conv as conv
+
 
 class SubstitutionMatrices(object):
     alphabet = [
@@ -28,7 +30,7 @@ class SubstitutionMatrices(object):
         'R6a', 'R6b', 'R6x',
         'UNB'
     ]
-    alphabet_length =[
+    alphabet_length = [
         'U', 'A', 'L+', 'L-',
         '+2+', '+2-', '-2+', '-2-',
         '+3+', '+3-', '-3+', '-3-',
@@ -42,12 +44,18 @@ class SubstitutionMatrices(object):
                  'clusterdistance': 'Mismatch scores are '
                  'given by -(distance between clusters).',
                  'bondlength': 'Scores based on hydrogen bond '
-                 'lengths.'}
+                 'lengths.',
+                 'bondlength2': 'Similar to bondlength, but '
+                 'short-to-short substitution is scaled '
+                 'exponentially.',
+                 'bondlength3': 'Similar to bondlength, but '
+                 'short-to-short substitution is scaled '
+                 'logarithmically.'}
 
     @property
     def simplematrix(self):
         a2 = cwr(self.alphabet, 2)
-        matrix = {k: (-1)**int(k[0]!=k[1]) for k in a2}
+        matrix = {k: (-1)**int(k[0] != k[1]) for k in a2}
         return matrix
 
     @property
@@ -60,7 +68,7 @@ class SubstitutionMatrices(object):
         matrix = {}
         for k in a2:
             if k[0] == k[1]:
-                dist = -1 #this gives match score = 1
+                dist = -1  # this gives match score = 1
             else:
                 try:
                     first = modes[k[0]]
@@ -70,9 +78,9 @@ class SubstitutionMatrices(object):
                         conv.ev2mat(second[0], second[1])
                     )
                 except KeyError:
-                    #The given key is not found in the dict of modes.
-                    #Most likely because the key is of the type '??x'
-                    #or 'NC-'/'UNB'
+                    # The given key is not found in the dict of modes.
+                    # Most likely because the key is of the type '??x'
+                    # or 'NC-'/'UNB'
                     dist = 3.14
             matrix[k] = -1 * dist
         return matrix
@@ -84,24 +92,73 @@ class SubstitutionMatrices(object):
         for k in a2:
             if k[0] == k[1]:
                 score = 1
-            elif k[0]=='U' or k[0]=='A':
+            elif k[0] == 'U' or k[0] == 'A':
                 score = -1
-            elif k[0][:-1]==k[1][:-1]:
-                #Same lengths
+            elif k[0][:-1] == k[1][:-1]:
+                # Same lengths
                 score = 0
-            elif k[0][:-1]=='L':
-                #Long to short substitution
+            elif k[0][:-1] == 'L':
+                # Long to short substitution
                 score = -0.75
             else:
-                #Short to short substitution
+                # Short to short substitution
                 d = abs(int(k[0][:-1]) - int(k[1][:-1]))
                 score = -d/20
-            #Twist penalty
-            if len(k[0])>1 and k[0][-1] != k[1][-1]:
+            # Twist penalty
+            if len(k[0]) > 1 and k[0][-1] != k[1][-1]:
                 score += -0.1
             matrix[k] = score
         return matrix
-                
+
+    @property
+    def bondlength2(self):
+        a2 = cwr(self.alphabet_length, 2)
+        matrix = {}
+        for k in a2:
+            if k[0] == k[1]:
+                score = 1
+            elif k[0] == 'U' or k[0] == 'A':
+                score = -1
+            elif k[0][:-1] == k[1][:-1]:
+                # Same lengths
+                score = 0
+            elif k[0][:-1] == 'L':
+                # Long to short substitution
+                score = -0.75
+            else:
+                # Short to short substitution
+                d = abs(int(k[0][:-1]) - int(k[1][:-1]))
+                score = math.expm1(d) / math.expm1(12) * -0.6
+            # Twist penalty
+            if len(k[0]) > 1 and k[0][-1] != k[1][-1]:
+                score += -0.1
+            matrix[k] = score
+        return matrix
+
+    @property
+    def bondlength3(self):
+        a2 = cwr(self.alphabet_length, 2)
+        matrix = {}
+        for k in a2:
+            if k[0] == k[1]:
+                score = 1
+            elif k[0] == 'U' or k[0] == 'A':
+                score = -1
+            elif k[0][:-1] == k[1][:-1]:
+                # Same lengths
+                score = 0
+            elif k[0][:-1] == 'L':
+                # Long to short substitution
+                score = -0.75
+            else:
+                # Short to short substitution
+                d = abs(int(k[0][:-1]) - int(k[1][:-1]))
+                score = math.log1p(d) / math.log1p(12) * -0.6
+            # Twist penalty
+            if len(k[0]) > 1 and k[0][-1] != k[1][-1]:
+                score += -0.1
+            matrix[k] = score
+        return matrix
 
     def getmatrix(self, matrixname):
         if matrixname == 'simplematrix':
@@ -110,7 +167,9 @@ class SubstitutionMatrices(object):
             return self.clusterdistance
         elif matrixname == 'bondlength':
             return self.bondlength
+        elif matrixname == 'bondlength2':
+            return self.bondlength2
+        elif matrixname == 'bondlength3':
+            return self.bondlength3
         else:
             raise KeyError('{} not found.'.format(matrixname))
-
-
