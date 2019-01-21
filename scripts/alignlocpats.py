@@ -65,7 +65,7 @@ def main(targetfile, candidatesfile, window, matrix, gap, outfile):
         tpats = pickle.load(fh)
     patrots = loadpatrot(candidatesfile)
 
-    matrices = alignment.substmatrices.SubstitutionMatrices()
+    matrices = alignment.substmatrices.SubstitutionMatrices('length')
     matrix = matrices.getmatrix(matrix)
 
     #Set up ppservers

@@ -15,7 +15,7 @@ import alignment.conv as conv
 
 
 class SubstitutionMatrices(object):
-    alphabet = [
+    alphabet_cluster = [
         'F2a', 'F2x',
         'F3a', 'F3b', 'F3c', 'F3x',
         'F4a', 'F4x',
@@ -30,6 +30,7 @@ class SubstitutionMatrices(object):
         'R6a', 'R6b', 'R6x',
         'UNB'
     ]
+    
     alphabet_length = [
         'U', 'A', 'L+', 'L-',
         '+2+', '+2-', '-2+', '-2-',
@@ -50,7 +51,18 @@ class SubstitutionMatrices(object):
                  'exponentially.',
                  'bondlength3': 'Similar to bondlength, but '
                  'short-to-short substitution is scaled '
-                 'logarithmically.'}
+                 'logarithmically.',
+                 'bondlength4': 'Similar to bondlength, but '
+                 'twist has a larger penalty (-0.8).'}
+
+    def __init__(self, alphabet=None):
+        if alphabet is None:
+            alphabet = self.alphabet_cluster
+        elif alphabet == 'cluster':
+            alphabet = self.alphabet_cluster
+        elif alphabet == 'length':
+            alphabet = self.alphabet_length
+        self.alphabet = alphabet
 
     @property
     def simplematrix(self):
@@ -64,7 +76,7 @@ class SubstitutionMatrices(object):
                                   'config/clustermode.pkl')
         with open(fname, 'rb') as f:
             modes = pickle.load(f)
-        a2 = cwr(self.alphabet, 2)
+        a2 = cwr(self.alphabet_cluster, 2)
         matrix = {}
         for k in a2:
             if k[0] == k[1]:
@@ -160,6 +172,31 @@ class SubstitutionMatrices(object):
             matrix[k] = score
         return matrix
 
+    @property
+    def bondlength4(self):
+        a2 = cwr(self.alphabet_length, 2)
+        matrix = {}
+        for k in a2:
+            if k[0] == k[1]:
+                score = 1
+            elif k[0] == 'U' or k[0] == 'A':
+                score = -1
+            elif k[0][:-1] == k[1][:-1]:
+                # Same lengths
+                score = 0
+            elif k[0][:-1] == 'L':
+                # Long to short substitution
+                score = -0.75
+            else:
+                # Short to short substitution
+                d = abs(int(k[0][:-1]) - int(k[1][:-1]))
+                score = -d/20
+            # Twist penalty
+            if len(k[0]) > 1 and k[0][-1] != k[1][-1]:
+                score += -0.8
+            matrix[k] = score
+        return matrix
+
     def getmatrix(self, matrixname):
         if matrixname == 'simplematrix':
             return self.simplematrix
@@ -171,5 +208,7 @@ class SubstitutionMatrices(object):
             return self.bondlength2
         elif matrixname == 'bondlength3':
             return self.bondlength3
+        elif matrixname == 'bondlength4':
+            return self.bondlength4
         else:
             raise KeyError('{} not found.'.format(matrixname))
