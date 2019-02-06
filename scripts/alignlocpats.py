@@ -77,10 +77,10 @@ def main(targetfile, candidatesfile, window, matrix, gap, outfile):
     else:
         ppservers = tuple(pp + ':2048' for pp in ppservers)
         jobserver = pp.Server(ppservers=ppservers)
-    ncpus = jobserver.get_ncpus()
+    ncpus = jobserver.get_ncpus() * len(ppservers)
 
     jobs = []
-    for subset in chunk(tpats, ncpus):
+    for subset in chunk(tpats, ncpus*10):
         job = jobserver.submit(
             alignmany,
             args=(subset, patrots, window, matrix, gap),
