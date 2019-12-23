@@ -6,7 +6,7 @@ from distutils.core import setup
 # noinspection PyArgumentList
 setup(
     name='alignment',
-    version='1.1.5',
+    version='1.1.6',
     author='Eser Aygün',
     author_email='eser.aygun@gmail.com',
     packages=['alignment'],
@@ -16,7 +16,8 @@ setup(
     long_description=open('README.rst').read(),
     requires=['numpy', 'six'],
     package_dir={'alignment': 'alignment'},
-    package_data={'alignment': ['config/clustermode.pkl']},
+    package_data={'alignment': ['config/clustermode.pkl',
+                                'config/blosum62.txt']},
     scripts=['scripts/getscores.py',
              'scripts/comparewithgdt.py',
              'scripts/alignlocpats.py',

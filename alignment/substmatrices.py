@@ -53,7 +53,8 @@ class SubstitutionMatrices(object):
                  'short-to-short substitution is scaled '
                  'logarithmically.',
                  'bondlength4': 'Similar to bondlength, but '
-                 'twist has a larger penalty (-0.8).'}
+                 'twist has a larger penalty (-0.8).',
+                 'blosum62': 'blosum62 substitution matrix.'}
 
     def __init__(self, alphabet=None):
         if alphabet is None:
@@ -95,6 +96,36 @@ class SubstitutionMatrices(object):
                     # or 'NC-'/'UNB'
                     dist = 3.14
             matrix[k] = -1 * dist
+        return matrix
+
+    @property
+    def blosum62(self):
+        fname = resource_filename('alignment',
+                                  'config/blosum62.txt')
+        with open(fname) as fh:
+            lines = fh.readlines()
+        rmat = [l for l in lines if l[0] != '#']
+        ks = rmat[0].strip().split()
+        matrix = {}
+        for row in rmat[1:]:
+            cs = row.strip().split()
+            thiskey = cs[0]
+            for k, v in zip(ks, cs[1:]):
+                matrix[(thiskey, k)] = int(v)
+        # key '*' corresponds to O or U in actual sequences
+        append = {}
+        for kpair in matrix.keys():
+            if kpair[0] == '*' and kpair[1] == '*':
+                rks = ['OO', 'OU', 'UO', 'UU']
+                for rk in rks:
+                    append[tuple(rk)] = matrix[kpair]
+            elif kpair[0] == '*':
+                append[('O', kpair[1])] = matrix[kpair]
+                append[('U', kpair[1])] = matrix[kpair]
+            elif kpair[1] == '*':
+                append[(kpair[0], 'O')] = matrix[kpair]
+                append[(kpair[0], 'U')] = matrix[kpair]
+        matrix.update(append)
         return matrix
 
     @property
@@ -210,5 +241,7 @@ class SubstitutionMatrices(object):
             return self.bondlength3
         elif matrixname == 'bondlength4':
             return self.bondlength4
+        elif matrixname == 'blosum62':
+            return self.blosum62
         else:
             raise KeyError('{} not found.'.format(matrixname))
