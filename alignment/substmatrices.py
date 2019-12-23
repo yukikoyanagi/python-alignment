@@ -129,6 +129,66 @@ class SubstitutionMatrices(object):
         return matrix
 
     @property
+    def blosum80(self):
+        fname = resource_filename('alignment',
+                                  'config/blosum80.txt')
+        with open(fname) as fh:
+            lines = fh.readlines()
+        rmat = [l for l in lines if l[0] != '#']
+        ks = rmat[0].strip().split()
+        matrix = {}
+        for row in rmat[1:]:
+            cs = row.strip().split()
+            thiskey = cs[0]
+            for k, v in zip(ks, cs[1:]):
+                matrix[(thiskey, k)] = int(v)
+        # key '*' corresponds to O or U in actual sequences
+        append = {}
+        for kpair in matrix.keys():
+            if kpair[0] == '*' and kpair[1] == '*':
+                rks = ['OO', 'OU', 'UO', 'UU']
+                for rk in rks:
+                    append[tuple(rk)] = matrix[kpair]
+            elif kpair[0] == '*':
+                append[('O', kpair[1])] = matrix[kpair]
+                append[('U', kpair[1])] = matrix[kpair]
+            elif kpair[1] == '*':
+                append[(kpair[0], 'O')] = matrix[kpair]
+                append[(kpair[0], 'U')] = matrix[kpair]
+        matrix.update(append)
+        return matrix
+
+    @property
+    def blosum90(self):
+        fname = resource_filename('alignment',
+                                  'config/blosum90.txt')
+        with open(fname) as fh:
+            lines = fh.readlines()
+        rmat = [l for l in lines if l[0] != '#']
+        ks = rmat[0].strip().split()
+        matrix = {}
+        for row in rmat[1:]:
+            cs = row.strip().split()
+            thiskey = cs[0]
+            for k, v in zip(ks, cs[1:]):
+                matrix[(thiskey, k)] = int(v)
+        # key '*' corresponds to O or U in actual sequences
+        append = {}
+        for kpair in matrix.keys():
+            if kpair[0] == '*' and kpair[1] == '*':
+                rks = ['OO', 'OU', 'UO', 'UU']
+                for rk in rks:
+                    append[tuple(rk)] = matrix[kpair]
+            elif kpair[0] == '*':
+                append[('O', kpair[1])] = matrix[kpair]
+                append[('U', kpair[1])] = matrix[kpair]
+            elif kpair[1] == '*':
+                append[(kpair[0], 'O')] = matrix[kpair]
+                append[(kpair[0], 'U')] = matrix[kpair]
+        matrix.update(append)
+        return matrix
+
+    @property
     def bondlength(self):
         a2 = cwr(self.alphabet_length, 2)
         matrix = {}
