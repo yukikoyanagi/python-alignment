@@ -54,7 +54,11 @@ class SubstitutionMatrices(object):
                  'logarithmically.',
                  'bondlength4': 'Similar to bondlength, but '
                  'twist has a larger penalty (-0.8).',
-                 'blosum62': 'blosum62 substitution matrix.'}
+                 'blosum62': 'blosum62 substitution matrix.',
+                 'blosum80': 'blosum80 substitution matrix.',
+                 'blosum90': 'blosum90 substitution matrix.',
+                 'betapairs': 'blosum-like substitution matrix '
+                 'for beta-strand pairing.'}
 
     def __init__(self, alphabet=None):
         if alphabet is None:
@@ -98,10 +102,7 @@ class SubstitutionMatrices(object):
             matrix[k] = -1 * dist
         return matrix
 
-    @property
-    def blosum62(self):
-        fname = resource_filename('alignment',
-                                  'config/blosum62.txt')
+    def loadproteinmatrix(self, fname):
         with open(fname) as fh:
             lines = fh.readlines()
         rmat = [l for l in lines if l[0] != '#']
@@ -127,66 +128,30 @@ class SubstitutionMatrices(object):
                 append[(kpair[0], 'U')] = matrix[kpair]
         matrix.update(append)
         return matrix
+        
+    @property
+    def blosum62(self):
+        fname = resource_filename('alignment',
+                                  'config/blosum62.txt')
+        return self.loadproteinmatrix(fname)
 
     @property
     def blosum80(self):
         fname = resource_filename('alignment',
                                   'config/blosum80.txt')
-        with open(fname) as fh:
-            lines = fh.readlines()
-        rmat = [l for l in lines if l[0] != '#']
-        ks = rmat[0].strip().split()
-        matrix = {}
-        for row in rmat[1:]:
-            cs = row.strip().split()
-            thiskey = cs[0]
-            for k, v in zip(ks, cs[1:]):
-                matrix[(thiskey, k)] = int(v)
-        # key '*' corresponds to O or U in actual sequences
-        append = {}
-        for kpair in matrix.keys():
-            if kpair[0] == '*' and kpair[1] == '*':
-                rks = ['OO', 'OU', 'UO', 'UU']
-                for rk in rks:
-                    append[tuple(rk)] = matrix[kpair]
-            elif kpair[0] == '*':
-                append[('O', kpair[1])] = matrix[kpair]
-                append[('U', kpair[1])] = matrix[kpair]
-            elif kpair[1] == '*':
-                append[(kpair[0], 'O')] = matrix[kpair]
-                append[(kpair[0], 'U')] = matrix[kpair]
-        matrix.update(append)
-        return matrix
-
+        return self.loadproteinmatrix(fname)
+    
     @property
     def blosum90(self):
         fname = resource_filename('alignment',
                                   'config/blosum90.txt')
-        with open(fname) as fh:
-            lines = fh.readlines()
-        rmat = [l for l in lines if l[0] != '#']
-        ks = rmat[0].strip().split()
-        matrix = {}
-        for row in rmat[1:]:
-            cs = row.strip().split()
-            thiskey = cs[0]
-            for k, v in zip(ks, cs[1:]):
-                matrix[(thiskey, k)] = int(v)
-        # key '*' corresponds to O or U in actual sequences
-        append = {}
-        for kpair in matrix.keys():
-            if kpair[0] == '*' and kpair[1] == '*':
-                rks = ['OO', 'OU', 'UO', 'UU']
-                for rk in rks:
-                    append[tuple(rk)] = matrix[kpair]
-            elif kpair[0] == '*':
-                append[('O', kpair[1])] = matrix[kpair]
-                append[('U', kpair[1])] = matrix[kpair]
-            elif kpair[1] == '*':
-                append[(kpair[0], 'O')] = matrix[kpair]
-                append[(kpair[0], 'U')] = matrix[kpair]
-        matrix.update(append)
-        return matrix
+        return self.loadproteinmatrix(fname)
+
+    @property
+    def betapairs(self):
+        fname = resource_filename('alignment',
+                                  'config/bstrands.txt')
+        return self.loadproteinmatrix(fname)
 
     @property
     def bondlength(self):
@@ -303,5 +268,11 @@ class SubstitutionMatrices(object):
             return self.bondlength4
         elif matrixname == 'blosum62':
             return self.blosum62
+        elif matrixname == 'blosum80':
+            return self.blosum80
+        elif matrixname == 'blosum90':
+            return self.blosum90
+        elif matrixname == 'betapairs':
+            return self.betapairs
         else:
             raise KeyError('{} not found.'.format(matrixname))
