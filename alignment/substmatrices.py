@@ -40,6 +40,8 @@ class SubstitutionMatrices(object):
         '+6+', '+6-', '-6+', '-6-',
     ]
 
+    alphabet_protein = list('ARNDCQEGHILKMFPSTWYVBJZXOU*')
+
     available = {'simplematrix': 'Simple matrix with match=1 '
                  'and mismatch=-1',
                  'clusterdistance': 'Mismatch scores are '
@@ -58,7 +60,8 @@ class SubstitutionMatrices(object):
                  'blosum80': 'blosum80 substitution matrix.',
                  'blosum90': 'blosum90 substitution matrix.',
                  'betapairs': 'blosum-like substitution matrix '
-                 'for beta-strand pairing.'}
+                 'for beta-strand pairing.',
+                 'blosum62plus': 'blosum62, plus @ for helix.'}
 
     def __init__(self, alphabet=None):
         if alphabet is None:
@@ -134,6 +137,18 @@ class SubstitutionMatrices(object):
         fname = resource_filename('alignment',
                                   'config/blosum62.txt')
         return self.loadproteinmatrix(fname)
+
+    @property
+    def blosum62plus(self):
+        fname = resource_filename('alignment',
+                                  'config/blosum62.txt')
+        mat = self.loadproteinmatrix(fname)
+        append = {}
+        append[('@', '@')] = 4
+        for k in self.alphabet_protein:
+            append[(k, '@')] = -4
+        mat.update(append)
+        return mat
 
     @property
     def blosum80(self):
@@ -274,5 +289,7 @@ class SubstitutionMatrices(object):
             return self.blosum90
         elif matrixname == 'betapairs':
             return self.betapairs
+        elif matrixname == 'blosum62plus':
+            return self.blosum62plus
         else:
             raise KeyError('{} not found.'.format(matrixname))
