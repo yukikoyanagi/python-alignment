@@ -61,7 +61,8 @@ class SubstitutionMatrices(object):
                  'blosum90': 'blosum90 substitution matrix.',
                  'betapairs': 'blosum-like substitution matrix '
                  'for beta-strand pairing.',
-                 'blosum62plus': 'blosum62, plus @ for helix.'}
+                 'blosum62plus': 'blosum62, plus @ for helix '
+                 'and = for beta strands.'}
 
     def __init__(self, alphabet=None):
         if alphabet is None:
@@ -147,6 +148,10 @@ class SubstitutionMatrices(object):
         append[('@', '@')] = 4
         for k in self.alphabet_protein:
             append[(k, '@')] = -4
+        append[('=', '=')] = 4
+        append[('@', '=')] = -4
+        for k in self.alphabet_protein:
+            append[(k, '=')] = -4
         mat.update(append)
         return mat
 
