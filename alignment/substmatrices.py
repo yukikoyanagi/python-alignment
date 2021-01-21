@@ -155,6 +155,21 @@ class SubstitutionMatrices(object):
         mat.update(append)
         return mat
 
+    def blosum62plus2(self, match=4, mismatch=-4):
+        fname = resource_filename('alignment',
+                                  'config/blosum62.txt')
+        mat = self.loadproteinmatrix(fname)
+        append = {}
+        append[('@', '@')] = match
+        for k in self.alphabet_protein:
+            append[(k, '@')] = mismatch
+        append[('=', '=')] = match
+        append[('@', '=')] = mismatch
+        for k in self.alphabet_protein:
+            append[(k, '=')] = mismatch
+        mat.update(append)
+        return mat
+    
     @property
     def blosum80(self):
         fname = resource_filename('alignment',
